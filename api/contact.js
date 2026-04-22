@@ -86,6 +86,8 @@ const getSheetTimestamp = () => {
   };
 };
 
+const getSheetRange = (sheetTab) => `'${sheetTab.replaceAll("'", "''")}'!A:D`;
+
 const appendPdfLeadToSheet = async (lead) => {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -93,27 +95,43 @@ const appendPdfLeadToSheet = async (lead) => {
   const sheetTab = process.env.GOOGLE_SHEET_TAB || "PDF Leads";
 
   if (!sheetId || !serviceAccountEmail || !privateKey) {
-    console.warn("Google Sheets env vars missing; PDF lead was not saved to Sheet.");
-    return;
+    console.warn("Google Sheets env vars missing; PDF lead was not saved to Sheet.", {
+      hasSheetId: Boolean(sheetId),
+      hasServiceAccountEmail: Boolean(serviceAccountEmail),
+      hasPrivateKey: Boolean(privateKey),
+    });
+    return false;
   }
 
-  const auth = new google.auth.JWT({
-    email: serviceAccountEmail,
-    key: privateKey,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
+  try {
+    const auth = new google.auth.JWT({
+      email: serviceAccountEmail,
+      key: privateKey,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
 
-  const sheets = google.sheets({ version: "v4", auth });
-  const { date, time } = getSheetTimestamp();
+    const sheets = google.sheets({ version: "v4", auth });
+    const { date, time } = getSheetTimestamp();
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: sheetId,
-    range: `${sheetTab}!A:D`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [[date, time, lead.name, lead.email]],
-    },
-  });
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: getSheetRange(sheetTab),
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[date, time, lead.name, lead.email]],
+      },
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Google Sheets append failed:", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      sheetTab,
+    });
+    return false;
+  }
 };
 
 const buildRows = (lead) =>
@@ -149,9 +167,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, message: "Missing required fields" });
     }
 
-    if (isPdfLead) {
-      await appendPdfLeadToSheet(lead);
-    }
+    const sheetSaved = isPdfLead ? await appendPdfLeadToSheet(lead) : null;
 
     const gmailUser = process.env.GMAIL_USER || "bugucam@gmail.com";
     const recipient = process.env.CONTACT_TO || gmailUser;
@@ -188,7 +204,7 @@ export default async function handler(req, res) {
       html,
     });
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, sheetSaved });
   } catch (error) {
     console.error("Contact form error:", error);
     return res.status(500).json({ ok: false });
