@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { google } from "googleapis";
 
 const labelMap = {
   name: "Ad Soyad",
@@ -65,6 +66,56 @@ const normalizePayload = (payload = {}) => ({
   }),
 });
 
+const getSheetTimestamp = () => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    time: `${values.hour}:${values.minute}:${values.second}`,
+  };
+};
+
+const appendPdfLeadToSheet = async (lead) => {
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const sheetTab = process.env.GOOGLE_SHEET_TAB || "PDF Leads";
+
+  if (!sheetId || !serviceAccountEmail || !privateKey) {
+    console.warn("Google Sheets env vars missing; PDF lead was not saved to Sheet.");
+    return;
+  }
+
+  const auth = new google.auth.JWT({
+    email: serviceAccountEmail,
+    key: privateKey,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+
+  const sheets = google.sheets({ version: "v4", auth });
+  const { date, time } = getSheetTimestamp();
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: `${sheetTab}!A:D`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [[date, time, lead.name, lead.email]],
+    },
+  });
+};
+
 const buildRows = (lead) =>
   fieldOrder
     .map((key) => {
@@ -96,6 +147,10 @@ export default async function handler(req, res) {
 
     if (!lead.name || !lead.sector || (isPdfLead ? !lead.email : !lead.phone)) {
       return res.status(400).json({ ok: false, message: "Missing required fields" });
+    }
+
+    if (isPdfLead) {
+      await appendPdfLeadToSheet(lead);
     }
 
     const gmailUser = process.env.GMAIL_USER || "bugucam@gmail.com";
