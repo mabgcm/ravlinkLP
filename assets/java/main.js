@@ -33,16 +33,11 @@ const applyTheme = (theme) => {
   if (!toggle) return;
 
   const icon = toggle.querySelector('i');
-  const label = toggle.querySelector('span');
   const nextTheme = selectedTheme === 'day' ? 'night' : 'day';
   toggle.setAttribute('aria-label', `${nextTheme === 'day' ? 'Gündüz' : 'Gece'} temasına geç`);
 
   if (icon) {
     icon.className = selectedTheme === 'day' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-  }
-
-  if (label) {
-    label.textContent = selectedTheme === 'day' ? 'Gündüz' : 'Gece';
   }
 };
 
@@ -279,7 +274,7 @@ const openPdfModalButton = document.getElementById('openPdfModal');
 const pdfLeadForm = document.getElementById('pdfLeadForm');
 const pdfThanks = document.getElementById('pdfThanks');
 const pdfDownloadUrl = 'assets/files/5PazarlamaHatasi.pdf';
-const pdfSuccessMessage = `Rehber e-posta adresinize gönderildi! <a href="${pdfDownloadUrl}" download target="_blank" rel="noopener">Buradan da indirebilirsiniz.</a>`;
+const pdfSuccessMessage = 'Teşekkürler!';
 
 const triggerPdfDownload = () => {
   const downloadLink = document.createElement('a');
