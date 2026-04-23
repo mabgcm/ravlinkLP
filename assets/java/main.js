@@ -273,6 +273,7 @@ const pdfModal = document.getElementById('pdf-modal');
 const openPdfModalButton = document.getElementById('openPdfModal');
 const pdfLeadForm = document.getElementById('pdfLeadForm');
 const pdfThanks = document.getElementById('pdfThanks');
+const pdfModalIntro = document.getElementById('pdfModalIntro');
 const pdfDownloadUrl = 'assets/files/5PazarlamaHatasi.pdf';
 const pdfSuccessMessage = 'Teşekkürler!';
 
@@ -292,6 +293,9 @@ if (openPdfModalButton) {
       pdfLeadForm.reset();
       pdfLeadForm.style.display = '';
     }
+    if (pdfModalIntro) {
+      pdfModalIntro.classList.remove('is-hidden');
+    }
     if (pdfThanks) {
       pdfThanks.innerHTML = pdfSuccessMessage;
       pdfThanks.classList.remove('is-visible');
@@ -310,6 +314,9 @@ if (pdfLeadForm) {
     const submitButton = pdfLeadForm.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     pdfLeadForm.style.display = 'none';
+    if (pdfModalIntro) {
+      pdfModalIntro.classList.add('is-hidden');
+    }
     pdfThanks.innerHTML = pdfSuccessMessage;
     pdfThanks.classList.add('is-visible');
     triggerPdfDownload();
