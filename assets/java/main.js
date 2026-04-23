@@ -287,6 +287,36 @@ const triggerPdfDownload = () => {
   downloadLink.remove();
 };
 
+const capturePdfLead = async (name, email) => {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 7000);
+
+  try {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, source: 'pdf-lead-magnet', sector: 'pdf-download' }),
+      keepalive: true,
+      signal: controller.signal,
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      console.warn('PDF lead capture returned an error:', result || response.status);
+      return;
+    }
+
+    if (result?.sheetSaved === false) {
+      console.warn('PDF lead was not saved to Google Sheets:', result.sheetError);
+    }
+  } catch (error) {
+    console.warn('PDF lead capture failed:', error);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+};
+
 if (openPdfModalButton) {
   openPdfModalButton.addEventListener('click', () => {
     if (pdfLeadForm) {
@@ -319,24 +349,12 @@ if (pdfLeadForm) {
     }
     pdfThanks.innerHTML = pdfSuccessMessage;
     pdfThanks.classList.add('is-visible');
-    triggerPdfDownload();
     trackPixel('track', 'Lead', { content_name: 'pdf-lead-magnet' });
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, source: 'pdf-lead-magnet', sector: 'pdf-download' }),
-      });
-
-      if (!response.ok) throw new Error('server');
-      const result = await response.json().catch(() => null);
-      if (result?.sheetSaved === false) {
-        console.warn('PDF lead was not saved to Google Sheets:', result.sheetError);
-      }
-    } catch (error) {
-      console.warn('PDF lead capture failed:', error);
+      await capturePdfLead(name, email);
     } finally {
+      triggerPdfDownload();
       submitButton.disabled = false;
     }
   });
