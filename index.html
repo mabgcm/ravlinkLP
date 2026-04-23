@@ -54,7 +54,7 @@
         </button>
         <a href="https://wa.me/14372196444?text=Merhaba%2C%20Texas%27taki%20i%C5%9Fletmem%20i%C3%A7in%20bilgi%20almak%20istiyorum."
           class="header-wa-btn" target="_blank" rel="noopener"
-          onclick="fbq('track','Contact',{content_name:'header-whatsapp'})">
+          onclick="window.trackPixel && window.trackPixel('track','Contact',{content_name:'header-whatsapp'})">
           <i class="fa-brands fa-whatsapp"></i>
           <span>WhatsApp'tan Yaz</span>
         </a>
@@ -66,10 +66,6 @@
   <section id="hero">
     <div class="container-rl">
       <div class="hero-content">
-        <div class="hero-badge animate-box">
-          <span class="pulse-dot"></span>
-          Texas · ABD Pazarı · Türk İşletmeler
-        </div>
         <h1 class="hero-title animate-box">
           Rakiplerin Şu An
           <span class="line-accent">Reklam Veriyor.</span>
@@ -82,16 +78,12 @@
         <div class="hero-ctas animate-box">
           <a href="https://wa.me/14372196444?text=Merhaba%2C%20Texas%27taki%20i%C5%9Fletmem%20i%C3%A7in%20bilgi%20almak%20istiyorum."
             class="btn-primary-rl" target="_blank" rel="noopener"
-            onclick="fbq('track','Lead',{content_name:'hero-whatsapp'})">
+            onclick="window.trackPixel && window.trackPixel('track','Lead',{content_name:'hero-whatsapp'})">
             <i class="fa-brands fa-whatsapp"></i> WhatsApp'tan Yaz
           </a>
           <button type="button" class="btn-secondary-rl" onclick="openSectorQuiz()">
             İşletmeme Uygun mu? <i class="fa-solid fa-arrow-right"></i>
           </button>
-        </div>
-        <div class="hero-urgency animate-box">
-          <span class="dot-orange"></span>
-          Bu ay yalnızca <strong class="urgency-highlight">2 yeni müşteri</strong> alıyoruz — kontenjan dolmadan harekete geç.
         </div>
         <div class="hero-stats animate-box">
           <div class="hero-stat-item">
@@ -131,32 +123,46 @@
       </div>
       <div class="pain-grid">
         <div class="pain-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-helmet-safety"></i></div>
-          <div>
+          <div class="pain-visual">
+            <img src="assets/images/construction.png" alt="İnşaat ve contractor" loading="lazy" />
+          </div>
+          <div class="pain-card-heading">
             <div class="pain-sector">İnşaat &amp; Contractor</div>
+            <div class="pain-accent-line"></div>
             <div class="pain-title">Telefon çalmıyor, iş bulmakta zorlanıyorsun</div>
           </div>
           <div class="pain-desc">Kaliteli iş yapıyorsun ama kimse seni bulamıyor. Rakip firmalar Google'da ilk sırada, sen 5. sayfadasın. Her yeni projeyi tavsiyeye bağlamak yorucu.</div>
           <div class="pain-solution"><i class="fa-solid fa-arrow-right"></i> Google Ads + yerel SEO ile çözüyoruz</div>
         </div>
         <div class="pain-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-utensils"></i></div>
-          <div>
+          <div class="pain-visual">
+            <img src="assets/images/restaurant.png" alt="Restoran ve kafe" loading="lazy" />
+          </div>
+          <div class="pain-card-heading">
             <div class="pain-sector">Restoran &amp; Kafe</div>
+            <div class="pain-accent-line"></div>
             <div class="pain-title">Google'da görünmüyorsun, masalar boş kalıyor</div>
           </div>
           <div class="pain-desc">Güzel bir mekânın var ama yeni müşteri gelmiyor. Yelp ve Google Maps'te rakipler yüzlerce yorum toplamış. Sen sosyal medyada da aktif değilsin.</div>
           <div class="pain-solution"><i class="fa-solid fa-arrow-right"></i> Meta Ads + Sosyal Medya ile dolduruyoruz</div>
         </div>
         <div class="pain-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-broom"></i></div>
-          <div>
+          <div class="pain-visual">
+            <img src="assets/images/cleaning.png" alt="Temizlik hizmetleri" loading="lazy" />
+          </div>
+          <div class="pain-card-heading">
             <div class="pain-sector">Temizlik Hizmetleri</div>
+            <div class="pain-accent-line"></div>
             <div class="pain-title">Rakipler dolu, sen hâlâ kapı kapı dolaşıyorsun</div>
           </div>
           <div class="pain-desc">Temizlik şirketi kurmak kolay, müşteri bulmak zor. Fiyat kırmak zorunda kalıyorsun ya da aylarca boş bekliyorsun. Dijitalde yoksan müşteri de yok.</div>
           <div class="pain-solution"><i class="fa-solid fa-arrow-right"></i> Hedefli reklamlarla düzenli müşteri akışı</div>
         </div>
+      </div>
+      <div class="section-cta animate-box">
+        <button type="button" class="btn-primary-rl" onclick="openSectorQuiz()">
+          İşletmeme Uygun mu? <i class="fa-solid fa-arrow-right"></i>
+        </button>
       </div>
     </div>
   </section>
@@ -202,6 +208,11 @@
           </div>
         </div>
       </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-primary-rl">
+          Hizmet Paketini Konuşalım <i class="fa-solid fa-arrow-down"></i>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -218,7 +229,9 @@
       </div>
       <div class="results-grid">
         <div class="result-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-helmet-safety"></i></div>
+          <div class="sector-thumb result-sector-image">
+            <img src="assets/images/construction.png" alt="İnşaat" loading="lazy" />
+          </div>
           <div>
             <div class="result-number">12+</div>
             <div class="result-label">Yeni proje teklifi / ay</div>
@@ -229,7 +242,9 @@
           <div class="result-sector">İnşaat · Houston, TX</div>
         </div>
         <div class="result-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-utensils"></i></div>
+          <div class="sector-thumb result-sector-image">
+            <img src="assets/images/restaurant.png" alt="Restoran" loading="lazy" />
+          </div>
           <div>
             <div class="result-number">%40</div>
             <div class="result-label">Masa doluluk artışı</div>
@@ -240,7 +255,9 @@
           <div class="result-sector">Restoran · Dallas, TX</div>
         </div>
         <div class="result-card animate-box">
-          <div class="pain-icon"><i class="fa-solid fa-broom"></i></div>
+          <div class="sector-thumb result-sector-image">
+            <img src="assets/images/cleaning.png" alt="Temizlik" loading="lazy" />
+          </div>
           <div>
             <div class="result-number">23</div>
             <div class="result-label">Yeni müşteri / ay</div>
@@ -251,6 +268,11 @@
           <div class="result-sector">Temizlik · Austin, TX</div>
         </div>
       </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-primary-rl">
+          Benzer Sonuçları Planlayalım <i class="fa-solid fa-arrow-down"></i>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -258,14 +280,23 @@
   <section id="badges" class="section">
     <div class="container-rl">
       <div class="badges-inner">
-        <div class="badges-label">Çalıştığımız Platformlar</div>
-        <div class="badges-row animate-box">
+        <div class="badges-row">
           <div class="platform-badge"><i class="fa-brands fa-meta"></i><span>Meta Ads</span></div>
           <div class="platform-badge"><i class="fa-brands fa-google"></i><span>Google Ads</span></div>
           <div class="platform-badge"><i class="fa-brands fa-instagram"></i><span>Instagram</span></div>
           <div class="platform-badge"><i class="fa-brands fa-facebook"></i><span>Facebook</span></div>
           <div class="platform-badge"><i class="fa-solid fa-globe"></i><span>Web &amp; SEO</span></div>
+          <div class="platform-badge" aria-hidden="true"><i class="fa-brands fa-meta"></i><span>Meta Ads</span></div>
+          <div class="platform-badge" aria-hidden="true"><i class="fa-brands fa-google"></i><span>Google Ads</span></div>
+          <div class="platform-badge" aria-hidden="true"><i class="fa-brands fa-instagram"></i><span>Instagram</span></div>
+          <div class="platform-badge" aria-hidden="true"><i class="fa-brands fa-facebook"></i><span>Facebook</span></div>
+          <div class="platform-badge" aria-hidden="true"><i class="fa-solid fa-globe"></i><span>Web &amp; SEO</span></div>
         </div>
+      </div>
+      <div class="section-cta badges-cta animate-box">
+        <a href="#form" class="btn-secondary-rl">
+          Platform Stratejini Konuşalım <i class="fa-solid fa-arrow-down"></i>
+        </a>
       </div>
     </div>
   </section>
@@ -314,20 +345,31 @@
       </div>
       <div class="whyus-grid animate-box">
         <div class="whyus-item">
-          <div class="whyus-num">🇨🇦</div>
+          <div class="whyus-image">
+            <img src="assets/images/toronto.png" alt="Toronto merkezli ekip" loading="lazy" />
+          </div>
           <div class="whyus-label">Toronto Merkezli</div>
           <div class="whyus-desc">Kuzey Amerika pazarını, kültürünü ve müşteri davranışlarını içeriden biliyoruz. Uzaktan tahmin etmiyoruz, yaşayarak öğrendik.</div>
         </div>
         <div class="whyus-item">
-          <div class="whyus-num">🇹🇷</div>
+          <div class="whyus-image">
+            <img src="assets/images/treng.png" alt="Türkçe düşün İngilizce pazarla" loading="lazy" />
+          </div>
           <div class="whyus-label">Türkçe Düşün, İngilizce Pazarla</div>
           <div class="whyus-desc">Hem seni hem de ABD'deki potansiyel müşterinizi anlıyoruz. Fikrinizi doğru dille doğru kitleye ulaştırıyoruz.</div>
         </div>
         <div class="whyus-item">
-          <div class="whyus-num">🎁</div>
+          <div class="whyus-image">
+            <img src="assets/images/freetalk.png" alt="Ücretsiz ön görüşme" loading="lazy" />
+          </div>
           <div class="whyus-label">Ücretsiz Ön Görüşme</div>
           <div class="whyus-desc">Önce konuşalım, işletmenizi anlayalım. Sonra size özel plan hazırlayalım.</div>
         </div>
+      </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-primary-rl">
+          Ücretsiz Ön Görüşme Al <i class="fa-solid fa-arrow-down"></i>
+        </a>
       </div>
     </div>
   </section>
@@ -347,9 +389,18 @@
         <div class="calculator-step">
           <label class="calculator-label">Sektörünüz</label>
           <div class="sector-button-row" id="calculatorSectorButtons">
-            <button type="button" class="sector-button" data-sector="insaat">🏗️ İnşaat</button>
-            <button type="button" class="sector-button" data-sector="restoran">🍽️ Restoran</button>
-            <button type="button" class="sector-button" data-sector="temizlik">🧹 Temizlik</button>
+            <button type="button" class="sector-button" data-sector="insaat">
+              <span class="sector-button-image"><img src="assets/images/construction.png" alt="" loading="lazy" /></span>
+              <span>İnşaat</span>
+            </button>
+            <button type="button" class="sector-button" data-sector="restoran">
+              <span class="sector-button-image"><img src="assets/images/restaurant.png" alt="" loading="lazy" /></span>
+              <span>Restoran</span>
+            </button>
+            <button type="button" class="sector-button" data-sector="temizlik">
+              <span class="sector-button-image"><img src="assets/images/cleaning.png" alt="" loading="lazy" /></span>
+              <span>Temizlik</span>
+            </button>
           </div>
         </div>
         <div class="calculator-step">
@@ -386,6 +437,11 @@
           </div>
         </div>
       </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-secondary-rl">
+          Direkt Strateji Görüşmesi Al <i class="fa-solid fa-arrow-down"></i>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -407,7 +463,7 @@
             <div class="author-avatar">MK</div>
             <div>
               <div class="author-name">Mehmet K.</div>
-              <div class="author-sector">İnşaat · Houston, TX</div>
+              <div class="author-sector"><span class="author-sector-image"><img src="assets/images/construction.png" alt="" loading="lazy" /></span>İnşaat · Houston, TX</div>
             </div>
           </div>
         </div>
@@ -420,7 +476,7 @@
             <div class="author-avatar">SY</div>
             <div>
               <div class="author-name">Selin Y.</div>
-              <div class="author-sector">Restoran · Dallas, TX</div>
+              <div class="author-sector"><span class="author-sector-image"><img src="assets/images/restaurant.png" alt="" loading="lazy" /></span>Restoran · Dallas, TX</div>
             </div>
           </div>
         </div>
@@ -433,10 +489,15 @@
             <div class="author-avatar">EA</div>
             <div>
               <div class="author-name">Emre A.</div>
-              <div class="author-sector">Temizlik · Austin, TX</div>
+              <div class="author-sector"><span class="author-sector-image"><img src="assets/images/cleaning.png" alt="" loading="lazy" /></span>Temizlik · Austin, TX</div>
             </div>
           </div>
         </div>
+      </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-primary-rl">
+          Senin İçin de Başlayalım <i class="fa-solid fa-arrow-down"></i>
+        </a>
       </div>
     </div>
   </section>
@@ -504,6 +565,11 @@
             <p>Meta Ads ve Google Ads kampanyaları genellikle 7-14 gün içinde optimizasyon verisine ulaşır. Çoğu müşterimiz ilk 30 günde ölçülebilir sonuç görüyor. Web sitesi ve SEO çalışmaları 60-90 günde etki gösterir.</p>
           </div>
         </div>
+      </div>
+      <div class="section-cta animate-box">
+        <a href="#form" class="btn-primary-rl">
+          Sorunu Birlikte Netleştirelim <i class="fa-solid fa-arrow-down"></i>
+        </a>
       </div>
     </div>
   </section>
@@ -613,7 +679,7 @@
   <a id="wa-float"
     href="https://wa.me/14372196444?text=Merhaba%2C%20Texas%27taki%20i%C5%9Fletmem%20i%C3%A7in%20bilgi%20almak%20istiyorum."
     target="_blank" rel="noopener" aria-label="WhatsApp ile yaz"
-    onclick="fbq('track','Contact',{content_name:'floating-whatsapp'})">
+    onclick="window.trackPixel && window.trackPixel('track','Contact',{content_name:'floating-whatsapp'})">
     <i class="fa-brands fa-whatsapp"></i>
   </a>
 
@@ -654,21 +720,21 @@
         <h3 class="modal-title">Hangi sektördesiniz?</h3>
         <div class="quiz-sector-list">
           <button type="button" class="quiz-sector-card" data-sector="insaat">
-            <span class="quiz-sector-emoji">🏗️</span>
+            <span class="quiz-sector-image"><img src="assets/images/construction.png" alt="" loading="lazy" /></span>
             <span>
               <span class="quiz-sector-title">İnşaat / Contractor</span>
               <span class="quiz-sector-subtext">Müteahhit, tadilat, çatı, boya, zemin vb.</span>
             </span>
           </button>
           <button type="button" class="quiz-sector-card" data-sector="restoran">
-            <span class="quiz-sector-emoji">🍽️</span>
+            <span class="quiz-sector-image"><img src="assets/images/restaurant.png" alt="" loading="lazy" /></span>
             <span>
               <span class="quiz-sector-title">Restoran / Kafe</span>
               <span class="quiz-sector-subtext">Türk mutfağı, fast food, kafe, catering vb.</span>
             </span>
           </button>
           <button type="button" class="quiz-sector-card" data-sector="temizlik">
-            <span class="quiz-sector-emoji">🧹</span>
+            <span class="quiz-sector-image"><img src="assets/images/cleaning.png" alt="" loading="lazy" /></span>
             <span>
               <span class="quiz-sector-title">Temizlik Hizmetleri</span>
               <span class="quiz-sector-subtext">Ev, ofis, halı, cam temizliği vb.</span>
@@ -701,6 +767,12 @@
       </div>
     </div>
   </div>
+
+  <!-- Vercel Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 
   <script src="assets/java/main.js"></script>
 

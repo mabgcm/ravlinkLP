@@ -43,6 +43,27 @@ const applyTheme = (theme) => {
 
 applyTheme(getStoredTheme() || getAutomaticTheme());
 
+const trackPixel = (method, eventName, payload = {}) => {
+  if (typeof fbq === 'function') {
+    fbq(method, eventName, payload);
+  }
+};
+
+window.trackPixel = trackPixel;
+
+const getElementLabel = (element) => (
+  element.getAttribute('aria-label') ||
+  element.textContent ||
+  element.id ||
+  element.className ||
+  element.tagName
+).toString().replace(/\s+/g, ' ').trim().slice(0, 120);
+
+const getSectionName = (element) => {
+  const section = element.closest('section');
+  return section ? section.id || null : null;
+};
+
 const themeToggle = document.getElementById('themeToggle');
 if (themeToggle) {
   themeToggle.addEventListener('click', () => {
@@ -50,6 +71,7 @@ if (themeToggle) {
     const nextTheme = currentTheme === 'day' ? 'night' : 'day';
     applyTheme(nextTheme);
     storeTheme(nextTheme);
+    trackPixel('trackCustom', 'ThemeChanged', { theme: nextTheme });
   });
 }
 
@@ -75,15 +97,19 @@ document.querySelectorAll('.animate-box').forEach(el => animObs.observe(el));
 const secObs = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      const name = entry.target.dataset.pixelSection;
+      const name = entry.target.dataset.pixelSection || entry.target.id;
       if (name) {
-        fbq('trackCustom', 'ImportantSectionViewed', { section: name });
+        trackPixel('trackCustom', 'SectionViewed', {
+          section: name,
+          section_id: entry.target.id || null,
+          page_path: window.location.pathname,
+        });
         secObs.unobserve(entry.target);
       }
     }
   });
-}, { threshold: 0.45 });
-document.querySelectorAll('[data-pixel-section]').forEach(el => secObs.observe(el));
+}, { threshold: 0.2 });
+document.querySelectorAll('section[id]').forEach(el => secObs.observe(el));
 
 // Meta Pixel: scroll depth
 const depthsFired = new Set();
@@ -92,14 +118,73 @@ window.addEventListener('scroll', () => {
   [25, 50, 75, 90].forEach(d => {
     if (pct >= d && !depthsFired.has(d)) {
       depthsFired.add(d);
-      fbq('trackCustom', 'ScrollDepth', { depth: d });
+      trackPixel('trackCustom', 'ScrollDepth', { depth: d, page_path: window.location.pathname });
     }
   });
 }, { passive: true });
 
 // Meta Pixel: time on site
-[[30000,'EngagedVisit'],[60000,'TimeOnSite60s'],[120000,'TimeOnSite120s'],[300000,'LongVisit']].forEach(([ms, ev]) => {
-  setTimeout(() => fbq('trackCustom', ev, { page_path: window.location.pathname }), ms);
+[
+  [30000, 'TimeOnSite30s', 30],
+  [60000, 'TimeOnSite60s', 60],
+  [90000, 'TimeOnSite90s', 90],
+  [120000, 'TimeOnSite120s', 120],
+].forEach(([ms, eventName, seconds]) => {
+  setTimeout(() => {
+    trackPixel('trackCustom', eventName, { seconds, page_path: window.location.pathname });
+  }, ms);
+});
+
+// Meta Pixel: page exit with total elapsed time
+const pageStartedAt = Date.now();
+let pageExitTracked = false;
+const trackPageExit = () => {
+  if (pageExitTracked) return;
+  pageExitTracked = true;
+  trackPixel('trackCustom', 'PageExit', {
+    seconds_on_page: Math.round((Date.now() - pageStartedAt) / 1000),
+    page_path: window.location.pathname,
+  });
+};
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    trackPageExit();
+  }
+});
+window.addEventListener('pagehide', trackPageExit);
+
+// Meta Pixel: broad interaction tracking
+document.addEventListener('click', (event) => {
+  const target = event.target.closest('a, button');
+  if (!target) return;
+
+  const payload = {
+    label: getElementLabel(target),
+    element_type: target.tagName.toLowerCase(),
+    element_id: target.id || null,
+    section: getSectionName(target),
+  };
+
+  if (target.tagName.toLowerCase() === 'a') {
+    payload.href = target.getAttribute('href') || null;
+    payload.is_external = target.hostname ? target.hostname !== window.location.hostname : false;
+  }
+
+  trackPixel('trackCustom', 'SiteInteraction', payload);
+});
+
+// Meta Pixel: form starts
+const formsStarted = new Set();
+document.addEventListener('focusin', (event) => {
+  const activeForm = event.target.closest('form');
+  if (!activeForm || formsStarted.has(activeForm.id)) return;
+  formsStarted.add(activeForm.id);
+  trackPixel('trackCustom', 'FormStarted', {
+    form_id: activeForm.id || null,
+    section: getSectionName(activeForm),
+    page_path: window.location.pathname,
+  });
 });
 
 // Form submit
@@ -134,7 +219,7 @@ form.addEventListener('submit', async (e) => {
     if (res.ok) {
       form.reset();
       successEl.classList.add('show');
-      fbq('track', 'Lead', { content_name: 'landing-texas-form', content_category: sector });
+      trackPixel('track', 'Lead', { content_name: 'landing-texas-form', content_category: sector });
       successEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
       throw new Error('server');
@@ -156,12 +241,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
   });
 });
-
-const trackPixel = (method, eventName, payload = {}) => {
-  if (typeof fbq === 'function') {
-    fbq(method, eventName, payload);
-  }
-};
 
 const roiMultipliers = {
   insaat: { reach: 85, clickRate: 0.028, convRate: 0.075 },
@@ -251,11 +330,15 @@ document.querySelectorAll('.faq-item').forEach((item, index) => {
 
 // Shared modal helpers
 const openModal = (modal) => {
-  if (modal) modal.classList.add('is-open');
+  if (!modal) return;
+  modal.classList.add('is-open');
+  trackPixel('trackCustom', 'ModalOpened', { modal_id: modal.id || null });
 };
 
 const closeModal = (modal) => {
-  if (modal) modal.classList.remove('is-open');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  trackPixel('trackCustom', 'ModalClosed', { modal_id: modal.id || null });
 };
 
 document.querySelectorAll('.modal-overlay').forEach((modal) => {
