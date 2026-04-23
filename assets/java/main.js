@@ -323,6 +323,10 @@ if (pdfLeadForm) {
       });
 
       if (!response.ok) throw new Error('server');
+      const result = await response.json().catch(() => null);
+      if (result?.sheetSaved === false) {
+        console.warn('PDF lead was not saved to Google Sheets:', result.sheetError);
+      }
     } catch (error) {
       console.warn('PDF lead capture failed:', error);
     } finally {

@@ -88,10 +88,80 @@ const getSheetTimestamp = () => {
 
 const getSheetRange = (sheetTab) => `'${sheetTab.replaceAll("'", "''")}'!A:D`;
 
+const getGoogleCredentials = () => {
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64) {
+    try {
+      const decoded = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64, "base64").toString(
+        "utf8",
+      );
+      const credentials = JSON.parse(decoded);
+      return {
+        serviceAccountEmail: credentials.client_email,
+        privateKey: credentials.private_key,
+      };
+    } catch (error) {
+      console.error("Invalid GOOGLE_SERVICE_ACCOUNT_JSON_BASE64:", error.message);
+      return {};
+    }
+  }
+
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      return {
+        serviceAccountEmail: credentials.client_email,
+        privateKey: credentials.private_key,
+      };
+    } catch (error) {
+      console.error("Invalid GOOGLE_SERVICE_ACCOUNT_JSON:", error.message);
+      return {};
+    }
+  }
+
+  return {
+    serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  };
+};
+
+const ensureSheetTab = async (sheets, spreadsheetId, sheetTab) => {
+  const spreadsheet = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: "sheets.properties.title",
+  });
+
+  const exists = spreadsheet.data.sheets?.some((sheet) => sheet.properties?.title === sheetTab);
+
+  if (!exists) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [{ addSheet: { properties: { title: sheetTab } } }],
+      },
+    });
+  }
+
+  const headerRange = `'${sheetTab.replaceAll("'", "''")}'!A1:D1`;
+  const header = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: headerRange,
+  });
+
+  if (!header.data.values?.length) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: headerRange,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [["Tarih", "Saat", "İsim", "E-posta"]],
+      },
+    });
+  }
+};
+
 const appendPdfLeadToSheet = async (lead) => {
   const sheetId = process.env.GOOGLE_SHEET_ID;
-  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const { serviceAccountEmail, privateKey } = getGoogleCredentials();
   const sheetTab = process.env.GOOGLE_SHEET_TAB || "PDF Leads";
 
   if (!sheetId || !serviceAccountEmail || !privateKey) {
@@ -100,7 +170,7 @@ const appendPdfLeadToSheet = async (lead) => {
       hasServiceAccountEmail: Boolean(serviceAccountEmail),
       hasPrivateKey: Boolean(privateKey),
     });
-    return false;
+    return { saved: false, error: "missing_google_sheets_env" };
   }
 
   try {
@@ -113,6 +183,8 @@ const appendPdfLeadToSheet = async (lead) => {
     const sheets = google.sheets({ version: "v4", auth });
     const { date, time } = getSheetTimestamp();
 
+    await ensureSheetTab(sheets, sheetId, sheetTab);
+
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: getSheetRange(sheetTab),
@@ -122,7 +194,7 @@ const appendPdfLeadToSheet = async (lead) => {
       },
     });
 
-    return true;
+    return { saved: true, error: null };
   } catch (error) {
     console.error("Google Sheets append failed:", {
       message: error.message,
@@ -130,7 +202,7 @@ const appendPdfLeadToSheet = async (lead) => {
       status: error.status,
       sheetTab,
     });
-    return false;
+    return { saved: false, error: error.message || "google_sheets_append_failed" };
   }
 };
 
@@ -167,7 +239,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, message: "Missing required fields" });
     }
 
-    const sheetSaved = isPdfLead ? await appendPdfLeadToSheet(lead) : null;
+    const sheetResult = isPdfLead ? await appendPdfLeadToSheet(lead) : null;
 
     const gmailUser = process.env.GMAIL_USER || "bugucam@gmail.com";
     const recipient = process.env.CONTACT_TO || gmailUser;
@@ -204,7 +276,11 @@ export default async function handler(req, res) {
       html,
     });
 
-    return res.status(200).json({ ok: true, sheetSaved });
+    return res.status(200).json({
+      ok: true,
+      sheetSaved: sheetResult?.saved ?? null,
+      sheetError: sheetResult?.error ?? null,
+    });
   } catch (error) {
     console.error("Contact form error:", error);
     return res.status(500).json({ ok: false });
